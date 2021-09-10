@@ -3,6 +3,7 @@ package com.example.demobank.controllers;
 
 import com.example.demobank.models.Account;
 import com.example.demobank.services.AccountService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +24,18 @@ public class AccountController {
     }
     
     @PostMapping("/add")
-    public ResponseEntity<Account> addAccount(@RequestParam String holder) {
+    public ResponseEntity<Account> addAccount(@RequestParam String holder) throws JsonProcessingException {
         return ResponseEntity.ok(accountService.addAccount(holder));
     }
     
-    @PostMapping("/deposit")
+    @PutMapping("/deposit")
     public ResponseEntity<Account> deposit(@RequestParam int amount, @RequestParam Long holderId){
         log.info("Deposit >>> amount: " + amount + " & holderId: " +holderId);
         return ResponseEntity.ok(accountService.deposit(amount, holderId));
     }
     
     
-    @PostMapping("/withdraw")
+    @PutMapping("/withdraw")
     public ResponseEntity<Account> withdraw(@RequestParam int amount, @RequestParam Long holderId) {
         return ResponseEntity.ok(accountService.withdraw(amount, holderId));
     }

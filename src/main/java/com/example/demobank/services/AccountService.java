@@ -1,22 +1,49 @@
 package com.example.demobank.services;
 
 import com.example.demobank.models.Account;
+import com.example.demobank.models.ApprovalDto;
 import com.example.demobank.repositories.AccountRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
-
+@ComponentScan
 @Service
 @RequiredArgsConstructor
 public class AccountService {
+    private String endpoint = "risk/";
+
+    @Value("${risk-service-url}")
+    private String riskServiceBaseUrl;
     
     private final AccountRepository accountRepository;
+
+    RestTemplate restTemplate = new RestTemplate();
     
-    public Account addAccount(String holder) {
-    
+    public Account addAccount(String holder) throws JsonProcessingException {
+        System.out.println(riskServiceBaseUrl + endpoint + holder);
+
+        ResponseEntity<String> forEntity = restTemplate.getForEntity(riskServiceBaseUrl + endpoint + holder, String.class);
+
+        //System.out.println(forEntity.getBody());
+
+        ObjectMapper mapper = new ObjectMapper();
+        ApprovalDto approvalDto = mapper.readValue(forEntity.getBody(), ApprovalDto.class);
+
+        System.out.println(approvalDto.isApproved());
+
+        if(!approvalDto.isApproved()){
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Kreditprövning misslyckad");
+        }
+
         Account account = new Account(holder);
         System.out.println(account);
         Account saved = accountRepository.save(account);
